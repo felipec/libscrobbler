@@ -16,7 +16,7 @@ static void add_tracks(sr_session_t *s)
 int main(void)
 {
 	sr_session_t *s;
-	s = sr_session_new();
+	s = sr_session_new(SR_LASTFM_URL, "tst", "1.0");
 	add_tracks(s);
 	sr_session_load_list(s, "list");
 	sr_session_test(s);
