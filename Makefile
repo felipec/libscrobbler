@@ -4,6 +4,8 @@ EXTRA_WARNINGS := -Wall -Wextra -ansi -std=c99 -Wno-unused-parameter
 
 CFLAGS := -ggdb -Wall $(EXTRA_WARNINGS)
 
+override CFLAGS += -D_XOPEN_SOURCE=500
+
 GLIB_CFLAGS := $(shell pkg-config --cflags glib-2.0)
 GLIB_LIBS := $(shell pkg-config --libs glib-2.0)
 
