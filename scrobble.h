@@ -6,6 +6,13 @@ typedef struct sr_track sr_track_t;
 struct sr_track {
 	char *artist;
 	char *title;
+	unsigned timestamp;
+	char source;
+	char rating;
+	int length;
+	char *album;
+	int position;
+	char *mbid;
 };
 
 typedef struct sr_session sr_session_t;

@@ -49,6 +49,8 @@ sr_track_free(sr_track_t *t)
 {
 	free(t->artist);
 	free(t->title);
+	free(t->album);
+	free(t->mbid);
 	free(t);
 }
 
@@ -71,6 +73,27 @@ got_field(sr_track_t *t,
 		break;
 	case 't':
 		t->title = strdup(value);
+		break;
+	case 'i':
+		t->timestamp = atoi(value);
+		break;
+	case 'o':
+		t->source = value[0];
+		break;
+	case 'r':
+		t->rating = value[0];
+		break;
+	case 'l':
+		t->length = atoi(value);
+		break;
+	case 'b':
+		t->album = strdup(value);
+		break;
+	case 'n':
+		t->position = atoi(value);
+		break;
+	case 'm':
+		t->mbid = strdup(value);
 		break;
 	default:
 		break;
@@ -138,6 +161,17 @@ store_track(void *data,
 
 	fprintf(f, "a: %s\n", t->artist);
 	fprintf(f, "t: %s\n", t->title);
+	fprintf(f, "i: %u\n", t->timestamp);
+	fprintf(f, "o: %c\n", t->source);
+	if (t->rating)
+		fprintf(f, "r: %c\n", t->rating);
+	fprintf(f, "l: %i\n", t->length);
+	if (t->album)
+		fprintf(f, "b: %s\n", t->album);
+	if (t->position)
+		fprintf(f, "n: %i\n", t->position);
+	if (t->mbid)
+		fprintf(f, "m: %s\n", t->mbid);
 
 	fputc('\n', f);
 }
