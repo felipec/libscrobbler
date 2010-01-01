@@ -2,6 +2,8 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
 
 #include <glib.h>
 
@@ -56,6 +58,75 @@ sr_session_add_track(sr_session_t *s,
 {
 	struct sr_session_priv *priv = s->priv;
 	g_queue_push_tail(priv->queue, t);
+}
+
+static inline void
+got_field(sr_track_t *t,
+	  char k,
+	  const char *value)
+{
+	switch (k) {
+	case 'a':
+		t->artist = strdup(value);
+		break;
+	case 't':
+		t->title = strdup(value);
+		break;
+	default:
+		break;
+	}
+}
+
+static inline bool
+track_is_valid(sr_track_t *t)
+{
+	return !!t->artist;
+}
+
+int
+sr_session_load_list(sr_session_t *s,
+		     const char *file)
+{
+	FILE *f;
+	char c, *p;
+	char k, v[255];
+	int stage = 1;
+	sr_track_t *t;
+
+	f = fopen(file, "r");
+	if (!f)
+		return 1;
+	t = sr_track_new();
+	while (true) {
+		c = getc(f);
+		if (stage == 1) {
+			if (c == '\n') {
+				sr_session_add_track(s, t);
+				t = sr_track_new();
+				continue;
+			}
+			if (c == EOF) {
+				if (track_is_valid(t))
+					sr_session_add_track(s, t);
+				break;
+			}
+			k = c;
+			p = v;
+			fseek(f, 2, SEEK_CUR);
+			stage++;
+		}
+		else if (stage == 2) {
+			*p = c;
+			if (c == '\n') {
+				*p = '\0';
+				got_field(t, k, v);
+				stage = 1;
+			}
+			p++;
+		}
+	}
+	fclose(f);
+	return 0;
 }
 
 static void
