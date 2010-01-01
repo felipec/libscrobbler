@@ -8,7 +8,10 @@ all:
 
 libscrobble.a: scrobble.o
 
-all: libscrobble.a
+test: test.o libscrobble.a
+binaries += test
+
+all: libscrobble.a $(binaries)
 
 # pretty print
 V = @
@@ -20,10 +23,13 @@ QUIET_CLEAN = $(Q:@=@echo '   CLEAN      '$@;)
 %.a::
 	$(QUIET_LINK)$(AR) rcs $@ $^
 
+$(binaries):
+	$(QUIET_LINK)$(CC) $(LDFLAGS) $(LIBS) -o $@ $^
+
 %.o:: %.c
 	$(QUIET_CC)$(CC) $(CFLAGS) -MMD -o $@ -c $<
 
 clean:
-	$(QUIET_CLEAN)$(RM) *.o *.d *.a
+	$(QUIET_CLEAN)$(RM) *.o *.d *.a $(binaries)
 
 -include *.d
