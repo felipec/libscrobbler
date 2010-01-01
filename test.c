@@ -15,6 +15,7 @@ int main(void)
 	sr_session_t *s;
 	s = sr_session_new();
 	add_tracks(s);
+	sr_session_test(s);
 	sr_session_free(s);
 	return 0;
 }

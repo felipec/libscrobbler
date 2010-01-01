@@ -1,6 +1,7 @@
 #include "scrobble.h"
 
 #include <stdlib.h>
+#include <stdio.h>
 
 #include <glib.h>
 
@@ -55,4 +56,23 @@ sr_session_add_track(sr_session_t *s,
 {
 	struct sr_session_priv *priv = s->priv;
 	g_queue_push_tail(priv->queue, t);
+}
+
+static void
+print_track(void *data,
+	    void *user_data)
+{
+	sr_track_t *t = data;
+
+	printf("a: %s\n", t->artist);
+	printf("t: %s\n", t->title);
+
+	putchar('\n');
+}
+
+void
+sr_session_test(sr_session_t *s)
+{
+	struct sr_session_priv *priv = s->priv;
+	g_queue_foreach(priv->queue, print_track, NULL);
 }
