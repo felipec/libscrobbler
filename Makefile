@@ -4,11 +4,16 @@ EXTRA_WARNINGS := -Wall -Wextra -ansi -std=c99 -Wno-unused-parameter
 
 CFLAGS := -ggdb -Wall $(EXTRA_WARNINGS)
 
+GLIB_CFLAGS := $(shell pkg-config --cflags glib-2.0)
+GLIB_LIBS := $(shell pkg-config --libs glib-2.0)
+
 all:
 
 libscrobble.a: scrobble.o
+libscrobble.a: CFLAGS := $(CFLAGS) $(GLIB_CFLAGS)
 
 test: test.o libscrobble.a
+test: LIBS := $(LIBS) $(GLIB_LIBS)
 binaries += test
 
 all: libscrobble.a $(binaries)
