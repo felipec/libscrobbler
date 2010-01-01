@@ -17,6 +17,8 @@ struct sr_session {
 sr_session_t *sr_session_new(void);
 void sr_session_free(sr_session_t *s);
 
+void sr_session_add_track(sr_session_t *s, sr_track_t *t);
+
 sr_track_t *sr_track_new(void);
 void sr_track_free(sr_track_t *t);
 

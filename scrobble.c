@@ -23,6 +23,11 @@ void
 sr_session_free(sr_session_t *s)
 {
 	struct sr_session_priv *priv = s->priv;
+	while (!g_queue_is_empty(priv->queue)) {
+		sr_track_t *t;
+		t = g_queue_pop_head(priv->queue);
+		sr_track_free(t);
+	}
 	g_queue_free(priv->queue);
 	free(s->priv);
 	free(s);
@@ -42,4 +47,12 @@ sr_track_free(sr_track_t *t)
 	free(t->artist);
 	free(t->title);
 	free(t);
+}
+
+void
+sr_session_add_track(sr_session_t *s,
+		     sr_track_t *t)
+{
+	struct sr_session_priv *priv = s->priv;
+	g_queue_push_tail(priv->queue, t);
 }
