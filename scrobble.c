@@ -155,21 +155,9 @@ sr_session_store_list(sr_session_t *s,
 	return 0;
 }
 
-static void
-print_track(void *data,
-	    void *user_data)
-{
-	sr_track_t *t = data;
-
-	printf("a: %s\n", t->artist);
-	printf("t: %s\n", t->title);
-
-	putchar('\n');
-}
-
 void
 sr_session_test(sr_session_t *s)
 {
 	struct sr_session_priv *priv = s->priv;
-	g_queue_foreach(priv->queue, print_track, NULL);
+	g_queue_foreach(priv->queue, store_track, stdout);
 }
