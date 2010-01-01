@@ -17,6 +17,7 @@ int main(void)
 	add_tracks(s);
 	sr_session_load_list(s, "list");
 	sr_session_test(s);
+	sr_session_store_list(s, "foo");
 	sr_session_free(s);
 	return 0;
 }
