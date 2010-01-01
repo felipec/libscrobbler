@@ -7,6 +7,9 @@ static void add_tracks(sr_session_t *s)
 	sr_track_t *t = sr_track_new();
 	t->artist = strdup("Weezer");
 	t->title = strdup("Island in the Sun");
+	t->timestamp = 1262338291;
+	t->length = 210;
+	t->source = 'P';
 	sr_session_add_track(s, t);
 }
 
