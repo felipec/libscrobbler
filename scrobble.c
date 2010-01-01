@@ -130,6 +130,32 @@ sr_session_load_list(sr_session_t *s,
 }
 
 static void
+store_track(void *data,
+	    void *user_data)
+{
+	sr_track_t *t = data;
+	FILE *f = user_data;
+
+	fprintf(f, "a: %s\n", t->artist);
+	fprintf(f, "t: %s\n", t->title);
+
+	fputc('\n', f);
+}
+
+int
+sr_session_store_list(sr_session_t *s,
+		      const char *file)
+{
+	FILE *f;
+	struct sr_session_priv *priv = s->priv;
+
+	f = fopen(file, "w");
+	g_queue_foreach(priv->queue, store_track, f);
+	fclose(f);
+	return 0;
+}
+
+static void
 print_track(void *data,
 	    void *user_data)
 {
