@@ -24,7 +24,9 @@ struct sr_session {
 	void *priv;
 };
 
-sr_session_t *sr_session_new(const char *url);
+sr_session_t *sr_session_new(const char *url,
+			     const char *client_id,
+			     const char *client_ver);
 void sr_session_free(sr_session_t *s);
 
 void sr_session_add_track(sr_session_t *s, sr_track_t *t);
