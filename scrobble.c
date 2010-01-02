@@ -102,6 +102,23 @@ sr_track_free(sr_track_t *t)
 	free(t);
 }
 
+sr_track_t *
+sr_track_dup(sr_track_t *in)
+{
+	sr_track_t *t;
+	t = sr_track_new();
+	t->artist = g_strdup(in->artist);
+	t->title = g_strdup(in->title);
+	t->timestamp = in->timestamp;
+	t->source = in->source;
+	t->rating = in->rating;
+	t->length = in->length;
+	t->album = g_strdup(in->album);
+	t->position = in->position;
+	t->mbid = g_strdup(in->mbid);
+	return t;
+}
+
 static inline void
 check_last(sr_session_t *s,
 	   int timestamp)

@@ -39,6 +39,7 @@ void sr_session_test(sr_session_t *s);
 
 sr_track_t *sr_track_new(void);
 void sr_track_free(sr_track_t *t);
+sr_track_t *sr_track_dup(sr_track_t *in);
 
 void sr_session_handshake(sr_session_t *s);
 void sr_session_submit(sr_session_t *s);
