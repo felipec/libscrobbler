@@ -159,6 +159,7 @@ int
 sr_session_load_list(sr_session_t *s,
 		     const char *file)
 {
+	struct sr_session_priv *priv = s->priv;
 	FILE *f;
 	char c, *p;
 	char k, v[255];
@@ -168,18 +169,20 @@ sr_session_load_list(sr_session_t *s,
 	f = fopen(file, "r");
 	if (!f)
 		return 1;
+
+	g_mutex_lock(priv->queue_mutex);
 	t = sr_track_new();
 	while (true) {
 		c = getc(f);
 		if (stage == 1) {
 			if (c == '\n') {
-				sr_session_add_track(s, t);
+				g_queue_push_tail(priv->queue, t);
 				t = sr_track_new();
 				continue;
 			}
 			if (c == (char) EOF) {
 				if (track_is_valid(t))
-					sr_session_add_track(s, t);
+					g_queue_push_tail(priv->queue, t);
 				break;
 			}
 			k = c;
@@ -197,6 +200,8 @@ sr_session_load_list(sr_session_t *s,
 			p++;
 		}
 	}
+	g_mutex_unlock(priv->queue_mutex);
+
 	fclose(f);
 	return 0;
 }
