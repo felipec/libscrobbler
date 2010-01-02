@@ -19,6 +19,7 @@ struct sr_session_priv {
 	char *session_id;
 	char *now_playing_url;
 	char *submit_url;
+	int hard_failure_count;
 };
 
 sr_session_t *
@@ -348,6 +349,49 @@ sr_session_handshake(sr_session_t *s)
 	g_free(auth);
 }
 
+static inline void
+invalidate_session(sr_session_t *s)
+{
+	struct sr_session_priv *priv = s->priv;
+	g_free(priv->session_id);
+	priv->session_id = NULL;
+	sr_session_handshake(s);
+}
+
+static inline void
+hard_failure(sr_session_t *s)
+{
+	struct sr_session_priv *priv = s->priv;
+	priv->hard_failure_count++;
+	if (priv->hard_failure_count >= 3)
+		invalidate_session(s);
+}
+
+static void
+scrobble_cb(SoupSession *session,
+	    SoupMessage *message,
+	    gpointer user_data)
+{
+	sr_session_t *s = user_data;
+	const char *data, *end;
+
+	if (!SOUP_STATUS_IS_SUCCESSFUL(message->status_code)) {
+		hard_failure(s);
+		return;
+	}
+
+	data = message->response_body->data;
+	end = strchr(data, '\n');
+	if (!end) /* really bad */
+		return;
+
+	if (strncmp(data, "OK", end - data) == 0);
+	else if (strncmp(data, "BADSESSION", end - data) == 0)
+		invalidate_session(s);
+	else
+		hard_failure(s);
+}
+
 #define ADD_FIELD(id, fmt, field) \
 	do { \
 		if ((field)) \
@@ -404,7 +448,7 @@ sr_session_submit(sr_session_t *s)
 				 data->len);
 	soup_session_queue_message(priv->soup,
 				   message,
-				   NULL,
+				   scrobble_cb,
 				   s);
 	g_string_free(data, false); /* soup gets ownership */
 }
