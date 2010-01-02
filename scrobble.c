@@ -177,7 +177,7 @@ sr_session_load_list(sr_session_t *s,
 				t = sr_track_new();
 				continue;
 			}
-			if (c == EOF) {
+			if (c == (char) EOF) {
 				if (track_is_valid(t))
 					sr_session_add_track(s, t);
 				break;
