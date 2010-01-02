@@ -6,6 +6,7 @@
 #include <stdbool.h>
 
 #include <glib.h>
+#include <libsoup/soup.h>
 
 struct sr_session_priv {
 	char *url;
@@ -13,6 +14,7 @@ struct sr_session_priv {
 	char *client_ver;
 	char *user, *hash_pwd;
 	GQueue *queue;
+	SoupSession *soup;
 };
 
 sr_session_t *
@@ -28,6 +30,7 @@ sr_session_new(const char *url,
 	priv->url = strdup(url);
 	priv->client_id = strdup(client_id);
 	priv->client_ver = strdup(client_ver);
+	priv->soup = soup_session_async_new();
 	return s;
 }
 
@@ -35,6 +38,9 @@ void
 sr_session_free(sr_session_t *s)
 {
 	struct sr_session_priv *priv = s->priv;
+
+	soup_session_abort(priv->soup);
+	g_object_unref(priv->soup);
 	while (!g_queue_is_empty(priv->queue)) {
 		sr_track_t *t;
 		t = g_queue_pop_head(priv->queue);
