@@ -22,6 +22,7 @@ struct sr_session_priv {
 	char *submit_url;
 	int hard_failure_count;
 	int submit_count;
+	sr_track_t *last_track;
 };
 
 sr_session_t *
@@ -101,13 +102,35 @@ sr_track_free(sr_track_t *t)
 	free(t);
 }
 
+static inline void
+check_last(sr_session_t *s,
+	   int timestamp)
+{
+	struct sr_session_priv *priv = s->priv;
+	sr_track_t *c;
+	int playtime;
+
+	c = priv->last_track;
+	if (!c)
+		return;
+	playtime = timestamp - c->timestamp;
+	/* did the last track played long enough? */
+	if (playtime >= 240 || playtime >= c->length / 2)
+		g_queue_push_tail(priv->queue, c);
+	else
+		sr_track_free(c);
+	priv->last_track = NULL;
+}
+
 void
 sr_session_add_track(sr_session_t *s,
 		     sr_track_t *t)
 {
 	struct sr_session_priv *priv = s->priv;
+
 	g_mutex_lock(priv->queue_mutex);
-	g_queue_push_tail(priv->queue, t);
+	check_last(s, t->timestamp);
+	priv->last_track = t;
 	g_mutex_unlock(priv->queue_mutex);
 }
 
