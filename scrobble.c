@@ -318,6 +318,7 @@ handshake_cb(SoupSession *session,
 	if (strncmp(data, "OK", end - data) == 0) {
 		priv->handshake_delay = 1;
 		parse_handshake(s, data);
+		sr_session_submit(s);
 	}
 	else if (strncmp(data, "BANNED", end - data) == 0)
 		fatal_error(s, "Client is banned");
