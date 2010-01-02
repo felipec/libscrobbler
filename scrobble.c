@@ -347,3 +347,63 @@ sr_session_handshake(sr_session_t *s)
 	g_free(handshake_url);
 	g_free(auth);
 }
+
+#define ADD_FIELD(id, fmt, field) \
+	do { \
+		if ((field)) \
+		g_string_append_printf(data, "&" id "[%i]=%" fmt, i, (field)); \
+		else \
+		g_string_append_printf(data, "&" id "[%i]=", i); \
+	} while(0);
+
+void
+sr_session_submit(sr_session_t *s)
+{
+	struct sr_session_priv *priv = s->priv;
+	SoupMessage *message;
+	int i = 0;
+	GString *data;
+
+	/* haven't got the session yet? */
+	if (!priv->session_id)
+		return;
+
+	if (g_queue_is_empty(priv->queue))
+		return;
+
+	data = g_string_new(NULL);
+	g_string_append_printf(data, "s=%s", priv->session_id);
+
+	while (!g_queue_is_empty(priv->queue)) {
+		sr_track_t *t;
+		t = g_queue_pop_head(priv->queue);
+
+		/* required fields */
+		g_string_append_printf(data, "&a[%i]=%s&t[%i]=%s&i[%i]=%i&o[%i]=%c",
+				       i, t->artist,
+				       i, t->title,
+				       i, t->timestamp,
+				       i, t->source);
+
+		/* optional fields */
+		ADD_FIELD("r", "c", t->rating);
+		ADD_FIELD("l", "i", t->length);
+		ADD_FIELD("b", "s", t->album);
+		ADD_FIELD("n", "i", t->position);
+		ADD_FIELD("m", "s", t->mbid);
+
+		++i;
+	}
+
+	message = soup_message_new("POST", priv->submit_url);
+	soup_message_set_request(message,
+				 "application/x-www-form-urlencoded",
+				 SOUP_MEMORY_TAKE,
+				 data->str,
+				 data->len);
+	soup_session_queue_message(priv->soup,
+				   message,
+				   NULL,
+				   s);
+	g_string_free(data, false); /* soup gets ownership */
+}
