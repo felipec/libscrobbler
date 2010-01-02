@@ -72,8 +72,6 @@ int main(void)
 		goto leave;
 
 	sr_session_load_list(s, "list");
-	sr_session_test(s);
-	sr_session_store_list(s, "foo");
 	sr_session_handshake(s);
 	g_timeout_add_seconds(30, timeout, s);
 
