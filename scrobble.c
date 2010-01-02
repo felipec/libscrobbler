@@ -130,7 +130,10 @@ sr_session_add_track(sr_session_t *s,
 
 	g_mutex_lock(priv->queue_mutex);
 	check_last(s, t->timestamp);
-	priv->last_track = t;
+	if (t->length > 30)
+		priv->last_track = t;
+	else
+		sr_track_free(t);
 	g_mutex_unlock(priv->queue_mutex);
 }
 
