@@ -8,17 +8,19 @@
 #include <glib.h>
 
 struct sr_session_priv {
+	char *url;
 	GQueue *queue;
 };
 
 sr_session_t *
-sr_session_new(void)
+sr_session_new(const char *url)
 {
 	sr_session_t *s;
 	struct sr_session_priv *priv;
 	s = calloc(1, sizeof(*s));
 	s->priv = priv = calloc(1, sizeof(*priv));
 	priv->queue = g_queue_new();
+	priv->url = strdup(url);
 	return s;
 }
 
@@ -32,6 +34,7 @@ sr_session_free(sr_session_t *s)
 		sr_track_free(t);
 	}
 	g_queue_free(priv->queue);
+	free(priv->url);
 	free(s->priv);
 	free(s);
 }

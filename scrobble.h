@@ -1,6 +1,9 @@
 #ifndef SCROBBLE_H
 #define SCROBBLE_H
 
+#define SR_LASTFM_URL "http://post.audioscrobbler.com/?hs=true"
+#define SR_LIBREFM_URL "http://turtle.libre.fm/?hs=true"
+
 typedef struct sr_track sr_track_t;
 
 struct sr_track {
@@ -21,7 +24,7 @@ struct sr_session {
 	void *priv;
 };
 
-sr_session_t *sr_session_new(void);
+sr_session_t *sr_session_new(const char *url);
 void sr_session_free(sr_session_t *s);
 
 void sr_session_add_track(sr_session_t *s, sr_track_t *t);
