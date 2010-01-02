@@ -46,7 +46,12 @@ sr_session_new(const char *url,
 void
 sr_session_free(sr_session_t *s)
 {
-	struct sr_session_priv *priv = s->priv;
+	struct sr_session_priv *priv;
+
+	if (!s)
+		return;
+
+	priv = s->priv;
 
 	soup_session_abort(priv->soup);
 	g_object_unref(priv->soup);
