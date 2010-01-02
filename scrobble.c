@@ -94,10 +94,10 @@ sr_track_new(void)
 void
 sr_track_free(sr_track_t *t)
 {
-	free(t->artist);
-	free(t->title);
-	free(t->album);
-	free(t->mbid);
+	g_free(t->artist);
+	g_free(t->title);
+	g_free(t->album);
+	g_free(t->mbid);
 	free(t);
 }
 
@@ -118,10 +118,10 @@ got_field(sr_track_t *t,
 {
 	switch (k) {
 	case 'a':
-		t->artist = strdup(value);
+		t->artist = g_strdup(value);
 		break;
 	case 't':
-		t->title = strdup(value);
+		t->title = g_strdup(value);
 		break;
 	case 'i':
 		t->timestamp = atoi(value);
@@ -136,13 +136,13 @@ got_field(sr_track_t *t,
 		t->length = atoi(value);
 		break;
 	case 'b':
-		t->album = strdup(value);
+		t->album = g_strdup(value);
 		break;
 	case 'n':
 		t->position = atoi(value);
 		break;
 	case 'm':
-		t->mbid = strdup(value);
+		t->mbid = g_strdup(value);
 		break;
 	default:
 		break;
