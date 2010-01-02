@@ -5,6 +5,8 @@
 #include <glib.h>
 #include <glib-object.h>
 
+static GMainLoop *main_loop;
+
 static gboolean
 load_cred(sr_session_t *s,
 	  const char *id)
@@ -52,6 +54,10 @@ int main(void)
 	sr_session_load_list(s, "list");
 	sr_session_test(s);
 	sr_session_store_list(s, "foo");
+	sr_session_handshake(s);
+
+	main_loop = g_main_loop_new(NULL, FALSE);
+	g_main_loop_run(main_loop);
 	sr_session_free(s);
 	return 0;
 }
