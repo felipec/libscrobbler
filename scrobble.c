@@ -14,6 +14,7 @@ struct sr_session_priv {
 	char *client_ver;
 	char *user, *hash_pwd;
 	GQueue *queue;
+	GMutex *queue_mutex;
 	SoupSession *soup;
 	int handshake_delay;
 	char *session_id;
@@ -33,6 +34,7 @@ sr_session_new(const char *url,
 	s = calloc(1, sizeof(*s));
 	s->priv = priv = calloc(1, sizeof(*priv));
 	priv->queue = g_queue_new();
+	priv->queue_mutex = g_mutex_new();
 	priv->url = strdup(url);
 	priv->client_id = strdup(client_id);
 	priv->client_ver = strdup(client_ver);
@@ -54,6 +56,7 @@ sr_session_free(sr_session_t *s)
 		sr_track_free(t);
 	}
 	g_queue_free(priv->queue);
+	g_mutex_free(priv->queue_mutex);
 	free(priv->url);
 	free(priv->client_id);
 	free(priv->client_ver);
@@ -98,7 +101,9 @@ sr_session_add_track(sr_session_t *s,
 		     sr_track_t *t)
 {
 	struct sr_session_priv *priv = s->priv;
+	g_mutex_lock(priv->queue_mutex);
 	g_queue_push_tail(priv->queue, t);
+	g_mutex_unlock(priv->queue_mutex);
 }
 
 static inline void
@@ -223,7 +228,9 @@ sr_session_store_list(sr_session_t *s,
 	struct sr_session_priv *priv = s->priv;
 
 	f = fopen(file, "w");
+	g_mutex_lock(priv->queue_mutex);
 	g_queue_foreach(priv->queue, store_track, f);
+	g_mutex_unlock(priv->queue_mutex);
 	fclose(f);
 	return 0;
 }
@@ -232,7 +239,9 @@ void
 sr_session_test(sr_session_t *s)
 {
 	struct sr_session_priv *priv = s->priv;
+	g_mutex_lock(priv->queue_mutex);
 	g_queue_foreach(priv->queue, store_track, stdout);
+	g_mutex_unlock(priv->queue_mutex);
 }
 
 static void
@@ -356,6 +365,7 @@ drop_submitted(sr_session_t *s)
 	struct sr_session_priv *priv = s->priv;
 	int c;
 
+	g_mutex_lock(priv->queue_mutex);
 	for (c = 0; c < priv->submit_count; c++) {
 		sr_track_t *t;
 		t = g_queue_pop_head(priv->queue);
@@ -363,6 +373,7 @@ drop_submitted(sr_session_t *s)
 		if (g_queue_is_empty(priv->queue))
 			break;
 	}
+	g_mutex_unlock(priv->queue_mutex);
 }
 
 static inline void
@@ -432,8 +443,11 @@ sr_session_submit(sr_session_t *s)
 	if (!priv->session_id)
 		return;
 
-	if (g_queue_is_empty(priv->queue))
+	g_mutex_lock(priv->queue_mutex);
+	if (g_queue_is_empty(priv->queue)) {
+		g_mutex_unlock(priv->queue_mutex);
 		return;
+	}
 
 	data = g_string_new(NULL);
 	g_string_append_printf(data, "s=%s", priv->session_id);
@@ -473,6 +487,8 @@ sr_session_submit(sr_session_t *s)
 			break;
 	}
 	priv->submit_count = i;
+
+	g_mutex_unlock(priv->queue_mutex);
 
 	message = soup_message_new("POST", priv->submit_url);
 	soup_message_set_request(message,
