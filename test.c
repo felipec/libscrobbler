@@ -7,6 +7,7 @@
 
 static GMainLoop *main_loop;
 static GKeyFile *keyfile;
+static sr_session_t *lastfm;
 
 static gboolean
 load_cred(sr_session_t *s,
@@ -41,7 +42,7 @@ static void error_cb(int fatal,
 
 static gboolean timeout(void *data)
 {
-	sr_session_submit(data);
+	sr_session_submit(lastfm);
 	return TRUE;
 }
 
@@ -63,7 +64,6 @@ get_session(const char *url,
 
 int main(void)
 {
-	sr_session_t *s = NULL;
 	gchar *file;
 	gboolean ok;
 
@@ -80,17 +80,17 @@ int main(void)
 	if (!ok)
 		goto leave;
 
-	s = get_session(SR_LASTFM_URL, "lastfm");
-	if (!s)
+	lastfm = get_session(SR_LASTFM_URL, "lastfm");
+	if (!lastfm)
 		goto leave;
 
-	g_timeout_add_seconds(30, timeout, s);
+	g_timeout_add_seconds(30, timeout, NULL);
 
 	main_loop = g_main_loop_new(NULL, FALSE);
 	g_main_loop_run(main_loop);
 
 leave:
-	sr_session_free(s);
+	sr_session_free(lastfm);
 	g_key_file_free(keyfile);
 
 	return 0;
