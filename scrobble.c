@@ -246,6 +246,14 @@ handshake_failure(sr_session_t *s)
 		priv->handshake_delay *= 2;
 }
 
+static inline void
+fatal_error(sr_session_t *s,
+	    const char *msg)
+{
+	if (s->error_cb)
+		s->error_cb(true, msg);
+}
+
 static void
 handshake_cb(SoupSession *session,
 	     SoupMessage *message,
@@ -267,6 +275,12 @@ handshake_cb(SoupSession *session,
 
 	if (strncmp(data, "OK", end - data) == 0)
 		priv->handshake_delay = 1;
+	else if (strncmp(data, "BANNED", end - data) == 0)
+		fatal_error(s, "Client is banned");
+	else if (strncmp(data, "BADAUTH", end - data) == 0)
+		fatal_error(s, "Bad authorization");
+	else if (strncmp(data, "BADTIME", end - data) == 0)
+		fatal_error(s, "Wrong system time");
 	else
 		handshake_failure(s);
 }
