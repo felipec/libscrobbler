@@ -1,8 +1,8 @@
 CC := gcc
 
-EXTRA_WARNINGS := -Wall -Wextra -ansi -std=c99 -Wno-unused-parameter
+EXTRA_WARNINGS = -Wextra -Wno-unused-parameter
 
-CFLAGS := -ggdb -Wall $(EXTRA_WARNINGS)
+CFLAGS := -ggdb -Wall -std=c99 $(EXTRA_WARNINGS)
 
 override CFLAGS += -D_XOPEN_SOURCE=500
 
