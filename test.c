@@ -45,6 +45,22 @@ static gboolean timeout(void *data)
 	return TRUE;
 }
 
+static sr_session_t *
+get_session(const char *url,
+	    const char *id)
+{
+	sr_session_t *s;
+	s = sr_session_new(url, "tst", "1.0");
+	s->error_cb = error_cb;
+	if (!load_cred(s, id)) {
+		sr_session_free(s);
+		return NULL;
+	}
+	sr_session_load_list(s, "list");
+	sr_session_handshake(s);
+	return s;
+}
+
 int main(void)
 {
 	sr_session_t *s = NULL;
@@ -64,14 +80,10 @@ int main(void)
 	if (!ok)
 		goto leave;
 
-	s = sr_session_new(SR_LASTFM_URL, "tst", "1.0");
-	s->error_cb = error_cb;
-	ok = load_cred(s, keyfile, "lastfm");
-	if (!ok)
+	s = get_session(SR_LASTFM_URL, "lastfm");
+	if (!s)
 		goto leave;
 
-	sr_session_load_list(s, "list");
-	sr_session_handshake(s);
 	g_timeout_add_seconds(30, timeout, s);
 
 	main_loop = g_main_loop_new(NULL, FALSE);
