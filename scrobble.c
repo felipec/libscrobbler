@@ -15,6 +15,7 @@ struct sr_session_priv {
 	char *user, *hash_pwd;
 	GQueue *queue;
 	SoupSession *soup;
+	int handshake_delay;
 };
 
 sr_session_t *
@@ -31,6 +32,7 @@ sr_session_new(const char *url,
 	priv->client_id = strdup(client_id);
 	priv->client_ver = strdup(client_ver);
 	priv->soup = soup_session_async_new();
+	priv->handshake_delay = 1;
 	return s;
 }
 
@@ -225,9 +227,23 @@ sr_session_test(sr_session_t *s)
 	g_queue_foreach(priv->queue, store_track, stdout);
 }
 
+static gboolean
+try_handshake(gpointer data)
+{
+	sr_session_handshake(data);
+	return false;
+}
+
 static inline void
 handshake_failure(sr_session_t *s)
 {
+	struct sr_session_priv *priv = s->priv;
+
+	g_timeout_add_seconds(priv->handshake_delay * 60,
+			      try_handshake, s);
+
+	if (priv->handshake_delay < 120)
+		priv->handshake_delay *= 2;
 }
 
 static void
@@ -249,7 +265,8 @@ handshake_cb(SoupSession *session,
 	if (!end) /* really bad */
 		return;
 
-	if (strncmp(data, "OK", end - data) == 0);
+	if (strncmp(data, "OK", end - data) == 0)
+		priv->handshake_delay = 1;
 	else
 		handshake_failure(s);
 }
