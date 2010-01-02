@@ -3,17 +3,9 @@
 #include <string.h> /* for strdup */
 
 #include <glib.h>
+#include <glib-object.h>
 
-static void add_tracks(sr_session_t *s)
-{
-	sr_track_t *t = sr_track_new();
-	t->artist = strdup("Weezer");
-	t->title = strdup("Island in the Sun");
-	t->timestamp = 1262338291;
-	t->length = 210;
-	t->source = 'P';
-	sr_session_add_track(s, t);
-}
+static GMainLoop *main_loop;
 
 static gboolean
 load_cred(sr_session_t *s,
@@ -49,15 +41,39 @@ leave:
 	return ok;
 }
 
+static void error_cb(int fatal,
+		     const char *msg)
+{
+	g_warning(msg);
+	if (fatal)
+		g_main_loop_quit(main_loop);
+}
+
+static gboolean timeout(void *data)
+{
+	sr_session_submit(data);
+	return TRUE;
+}
+
 int main(void)
 {
 	sr_session_t *s;
+
+	g_type_init();
+	if (!g_thread_supported())
+		g_thread_init(NULL);
+
 	s = sr_session_new(SR_LASTFM_URL, "tst", "1.0");
+	s->error_cb = error_cb;
 	load_cred(s, "lastfm");
-	add_tracks(s);
 	sr_session_load_list(s, "list");
 	sr_session_test(s);
 	sr_session_store_list(s, "foo");
+	sr_session_handshake(s);
+	g_timeout_add_seconds(30, timeout, s);
+
+	main_loop = g_main_loop_new(NULL, FALSE);
+	g_main_loop_run(main_loop);
 	sr_session_free(s);
 	return 0;
 }

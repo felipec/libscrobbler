@@ -22,6 +22,7 @@ typedef struct sr_session sr_session_t;
 
 struct sr_session {
 	void *priv;
+	void (*error_cb) (int fatal, const char *msg);
 };
 
 sr_session_t *sr_session_new(const char *url,
@@ -37,5 +38,8 @@ void sr_session_test(sr_session_t *s);
 
 sr_track_t *sr_track_new(void);
 void sr_track_free(sr_track_t *t);
+
+void sr_session_handshake(sr_session_t *s);
+void sr_session_submit(sr_session_t *s);
 
 #endif /* SCROBBLE_H */
