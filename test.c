@@ -2,6 +2,8 @@
 
 #include <string.h> /* for strdup */
 
+#include <glib.h>
+
 static void add_tracks(sr_session_t *s)
 {
 	sr_track_t *t = sr_track_new();
