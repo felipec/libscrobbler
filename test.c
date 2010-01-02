@@ -6,10 +6,10 @@
 #include <glib-object.h>
 
 static GMainLoop *main_loop;
+static GKeyFile *keyfile;
 
 static gboolean
 load_cred(sr_session_t *s,
-	  GKeyFile *keyfile,
 	  const char *id)
 {
 	gchar *username = NULL, *password = NULL;
@@ -48,7 +48,6 @@ static gboolean timeout(void *data)
 int main(void)
 {
 	sr_session_t *s = NULL;
-	GKeyFile *keyfile;
 	gchar *file;
 	gboolean ok;
 
