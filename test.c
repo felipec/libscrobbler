@@ -67,7 +67,10 @@ int main(void)
 
 	s = sr_session_new(SR_LASTFM_URL, "tst", "1.0");
 	s->error_cb = error_cb;
-	load_cred(s, keyfile, "lastfm");
+	ok = load_cred(s, keyfile, "lastfm");
+	if (!ok)
+		goto leave;
+
 	sr_session_load_list(s, "list");
 	sr_session_test(s);
 	sr_session_store_list(s, "foo");
