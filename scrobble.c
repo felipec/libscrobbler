@@ -8,17 +8,26 @@
 #include <glib.h>
 
 struct sr_session_priv {
+	char *url;
+	char *client_id;
+	char *client_ver;
+	char *user, *hash_pwd;
 	GQueue *queue;
 };
 
 sr_session_t *
-sr_session_new(void)
+sr_session_new(const char *url,
+	       const char *client_id,
+	       const char *client_ver)
 {
 	sr_session_t *s;
 	struct sr_session_priv *priv;
 	s = calloc(1, sizeof(*s));
 	s->priv = priv = calloc(1, sizeof(*priv));
 	priv->queue = g_queue_new();
+	priv->url = strdup(url);
+	priv->client_id = strdup(client_id);
+	priv->client_ver = strdup(client_ver);
 	return s;
 }
 
@@ -32,8 +41,22 @@ sr_session_free(sr_session_t *s)
 		sr_track_free(t);
 	}
 	g_queue_free(priv->queue);
+	free(priv->url);
+	free(priv->client_id);
+	free(priv->client_ver);
+	free(priv->user);
+	g_free(priv->hash_pwd);
 	free(s->priv);
 	free(s);
+}
+
+void sr_session_set_cred(sr_session_t *s,
+			 char *user,
+			 char *password)
+{
+	struct sr_session_priv *priv = s->priv;
+	priv->user = strdup(user);
+	priv->hash_pwd = g_compute_checksum_for_string(G_CHECKSUM_MD5, password, -1);
 }
 
 sr_track_t *

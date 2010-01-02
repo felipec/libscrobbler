@@ -15,6 +15,7 @@ libscrobble.a: scrobble.o
 libscrobble.a: CFLAGS := $(CFLAGS) $(GLIB_CFLAGS)
 
 test: test.o libscrobble.a
+test: CFLAGS := $(CFLAGS) $(GLIB_CFLAGS)
 test: LIBS := $(LIBS) $(GLIB_LIBS)
 binaries += test
 
