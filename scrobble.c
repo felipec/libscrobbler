@@ -224,3 +224,38 @@ sr_session_test(sr_session_t *s)
 	struct sr_session_priv *priv = s->priv;
 	g_queue_foreach(priv->queue, store_track, stdout);
 }
+
+void
+sr_session_handshake(sr_session_t *s)
+{
+	struct sr_session_priv *priv = s->priv;
+	gchar *auth, *tmp;
+	glong timestamp;
+	gchar *handshake_url;
+	SoupMessage *message;
+	GTimeVal time_val;
+
+	g_get_current_time(&time_val);
+	timestamp = time_val.tv_sec;
+
+	tmp = g_strdup_printf("%s%li", priv->hash_pwd, timestamp);
+	auth = g_compute_checksum_for_string(G_CHECKSUM_MD5, tmp, -1);
+	g_free(tmp);
+
+	handshake_url = g_strdup_printf("%s&p=1.2.1&c=%s&v=%s&u=%s&t=%li&a=%s",
+					priv->url,
+					priv->client_id,
+					priv->client_ver,
+					priv->user,
+					timestamp,
+					auth);
+
+	message = soup_message_new("GET", handshake_url);
+	soup_session_queue_message(priv->soup,
+				   message,
+				   NULL,
+				   s);
+
+	g_free(handshake_url);
+	g_free(auth);
+}

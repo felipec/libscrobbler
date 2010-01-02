@@ -38,4 +38,6 @@ void sr_session_test(sr_session_t *s);
 sr_track_t *sr_track_new(void);
 void sr_track_free(sr_track_t *t);
 
+void sr_session_handshake(sr_session_t *s);
+
 #endif /* SCROBBLE_H */
