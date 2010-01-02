@@ -123,6 +123,15 @@ check_last(sr_session_t *s,
 }
 
 void
+sr_session_pause(sr_session_t *s)
+{
+	struct sr_session_priv *priv = s->priv;
+	g_mutex_lock(priv->queue_mutex);
+	check_last(s, time(NULL));
+	g_mutex_unlock(priv->queue_mutex);
+}
+
+void
 sr_session_add_track(sr_session_t *s,
 		     sr_track_t *t)
 {

@@ -34,6 +34,7 @@ void sr_session_set_cred(sr_session_t *s, char *user, char *password);
 void sr_session_add_track(sr_session_t *s, sr_track_t *t);
 int sr_session_load_list(sr_session_t *s, const char *file);
 int sr_session_store_list(sr_session_t *s, const char *file);
+void sr_session_pause(sr_session_t *s);
 void sr_session_test(sr_session_t *s);
 
 sr_track_t *sr_track_new(void);
