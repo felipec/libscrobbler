@@ -417,6 +417,8 @@ scrobble_cb(SoupSession *session,
 		g_string_append_printf(data, "&" id "[%i]=", i); \
 	} while(0);
 
+#define EXTRA_URI_ENCODE_CHARS "&+"
+
 void
 sr_session_submit(sr_session_t *s)
 {
@@ -438,20 +440,34 @@ sr_session_submit(sr_session_t *s)
 
 	for (c = priv->queue->head; c; c = c->next) {
 		sr_track_t *t = c->data;
+		char *artist, *title;
+		char *album = NULL, *mbid = NULL;
+
+		artist = soup_uri_encode(t->artist, EXTRA_URI_ENCODE_CHARS);
+		title = soup_uri_encode(t->title, EXTRA_URI_ENCODE_CHARS);
+		if (t->album)
+			album = soup_uri_encode(t->album, EXTRA_URI_ENCODE_CHARS);
+		if (t->mbid)
+			mbid = soup_uri_encode(t->mbid, EXTRA_URI_ENCODE_CHARS);
 
 		/* required fields */
 		g_string_append_printf(data, "&a[%i]=%s&t[%i]=%s&i[%i]=%i&o[%i]=%c",
-				       i, t->artist,
-				       i, t->title,
+				       i, artist,
+				       i, title,
 				       i, t->timestamp,
 				       i, t->source);
 
 		/* optional fields */
 		ADD_FIELD("r", "c", t->rating);
 		ADD_FIELD("l", "i", t->length);
-		ADD_FIELD("b", "s", t->album);
+		ADD_FIELD("b", "s", album);
 		ADD_FIELD("n", "i", t->position);
-		ADD_FIELD("m", "s", t->mbid);
+		ADD_FIELD("m", "s", mbid);
+
+		g_free(artist);
+		g_free(title);
+		g_free(album);
+		g_free(mbid);
 
 		if (++i >= 50)
 			break;
