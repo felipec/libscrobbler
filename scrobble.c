@@ -20,6 +20,7 @@ struct sr_session_priv {
 	char *now_playing_url;
 	char *submit_url;
 	int hard_failure_count;
+	int submit_count;
 };
 
 sr_session_t *
@@ -349,6 +350,21 @@ sr_session_handshake(sr_session_t *s)
 	g_free(auth);
 }
 
+static void
+drop_submitted(sr_session_t *s)
+{
+	struct sr_session_priv *priv = s->priv;
+	int c;
+
+	for (c = 0; c < priv->submit_count; c++) {
+		sr_track_t *t;
+		t = g_queue_pop_head(priv->queue);
+		sr_track_free(t);
+		if (g_queue_is_empty(priv->queue))
+			break;
+	}
+}
+
 static inline void
 invalidate_session(sr_session_t *s)
 {
@@ -385,7 +401,8 @@ scrobble_cb(SoupSession *session,
 	if (!end) /* really bad */
 		return;
 
-	if (strncmp(data, "OK", end - data) == 0);
+	if (strncmp(data, "OK", end - data) == 0)
+		drop_submitted(user_data);
 	else if (strncmp(data, "BADSESSION", end - data) == 0)
 		invalidate_session(s);
 	else
@@ -407,6 +424,7 @@ sr_session_submit(sr_session_t *s)
 	SoupMessage *message;
 	int i = 0;
 	GString *data;
+	GList *c;
 
 	/* haven't got the session yet? */
 	if (!priv->session_id)
@@ -418,9 +436,8 @@ sr_session_submit(sr_session_t *s)
 	data = g_string_new(NULL);
 	g_string_append_printf(data, "s=%s", priv->session_id);
 
-	while (!g_queue_is_empty(priv->queue)) {
-		sr_track_t *t;
-		t = g_queue_pop_head(priv->queue);
+	for (c = priv->queue->head; c; c = c->next) {
+		sr_track_t *t = c->data;
 
 		/* required fields */
 		g_string_append_printf(data, "&a[%i]=%s&t[%i]=%s&i[%i]=%i&o[%i]=%c",
@@ -439,6 +456,7 @@ sr_session_submit(sr_session_t *s)
 		if (++i >= 50)
 			break;
 	}
+	priv->submit_count = i;
 
 	message = soup_message_new("POST", priv->submit_url);
 	soup_message_set_request(message,
