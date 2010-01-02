@@ -41,6 +41,14 @@ leave:
 	return ok;
 }
 
+static void error_cb(int fatal,
+		     const char *msg)
+{
+	g_warning(msg);
+	if (fatal)
+		g_main_loop_quit(main_loop);
+}
+
 int main(void)
 {
 	sr_session_t *s;
@@ -50,6 +58,7 @@ int main(void)
 		g_thread_init(NULL);
 
 	s = sr_session_new(SR_LASTFM_URL, "tst", "1.0");
+	s->error_cb = error_cb;
 	load_cred(s, "lastfm");
 	sr_session_load_list(s, "list");
 	sr_session_test(s);
