@@ -225,6 +225,35 @@ sr_session_test(sr_session_t *s)
 	g_queue_foreach(priv->queue, store_track, stdout);
 }
 
+static inline void
+handshake_failure(sr_session_t *s)
+{
+}
+
+static void
+handshake_cb(SoupSession *session,
+	     SoupMessage *message,
+	     void *user_data)
+{
+	sr_session_t *s = user_data;
+	struct sr_session_priv *priv = s->priv;
+	const char *data, *end;
+
+	if (!SOUP_STATUS_IS_SUCCESSFUL(message->status_code)) {
+		handshake_failure(s);
+		return;
+	}
+
+	data = message->response_body->data;
+	end = strchr(data, '\n');
+	if (!end) /* really bad */
+		return;
+
+	if (strncmp(data, "OK", end - data) == 0);
+	else
+		handshake_failure(s);
+}
+
 void
 sr_session_handshake(sr_session_t *s)
 {
@@ -253,7 +282,7 @@ sr_session_handshake(sr_session_t *s)
 	message = soup_message_new("GET", handshake_url);
 	soup_session_queue_message(priv->soup,
 				   message,
-				   NULL,
+				   handshake_cb,
 				   s);
 
 	g_free(handshake_url);
