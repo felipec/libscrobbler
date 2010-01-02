@@ -16,6 +16,9 @@ struct sr_session_priv {
 	GQueue *queue;
 	SoupSession *soup;
 	int handshake_delay;
+	char *session_id;
+	char *now_playing_url;
+	char *submit_url;
 };
 
 sr_session_t *
@@ -54,6 +57,9 @@ sr_session_free(sr_session_t *s)
 	free(priv->client_ver);
 	free(priv->user);
 	g_free(priv->hash_pwd);
+	g_free(priv->session_id);
+	g_free(priv->now_playing_url);
+	g_free(priv->submit_url);
 	free(s->priv);
 	free(s);
 }
@@ -227,6 +233,26 @@ sr_session_test(sr_session_t *s)
 	g_queue_foreach(priv->queue, store_track, stdout);
 }
 
+static void
+parse_handshake(sr_session_t *s,
+		const char *data)
+{
+	struct sr_session_priv *priv = s->priv;
+	char **response;
+
+	response = g_strsplit(data, "\n", 5);
+
+	g_free(priv->session_id);
+	g_free(priv->now_playing_url);
+	g_free(priv->submit_url);
+
+	priv->session_id = g_strdup(response[1]);
+	priv->now_playing_url = g_strdup(response[2]);
+	priv->submit_url = g_strdup(response[3]);
+
+	g_strfreev(response);
+}
+
 static gboolean
 try_handshake(gpointer data)
 {
@@ -273,8 +299,10 @@ handshake_cb(SoupSession *session,
 	if (!end) /* really bad */
 		return;
 
-	if (strncmp(data, "OK", end - data) == 0)
+	if (strncmp(data, "OK", end - data) == 0) {
 		priv->handshake_delay = 1;
+		parse_handshake(s, data);
+	}
 	else if (strncmp(data, "BANNED", end - data) == 0)
 		fatal_error(s, "Client is banned");
 	else if (strncmp(data, "BADAUTH", end - data) == 0)
