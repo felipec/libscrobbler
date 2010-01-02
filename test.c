@@ -3,6 +3,7 @@
 #include <string.h> /* for strdup */
 
 #include <glib.h>
+#include <glib-object.h>
 
 static gboolean
 load_cred(sr_session_t *s,
@@ -41,6 +42,11 @@ leave:
 int main(void)
 {
 	sr_session_t *s;
+
+	g_type_init();
+	if (!g_thread_supported())
+		g_thread_init(NULL);
+
 	s = sr_session_new(SR_LASTFM_URL, "tst", "1.0");
 	load_cred(s, "lastfm");
 	sr_session_load_list(s, "list");

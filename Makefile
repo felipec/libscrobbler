@@ -12,6 +12,9 @@ GLIB_LIBS := $(shell pkg-config --libs glib-2.0)
 SOUP_CFLAGS := $(shell pkg-config --cflags libsoup-2.4)
 SOUP_LIBS := $(shell pkg-config --libs libsoup-2.4)
 
+GTHREAD_CFLAGS := $(shell pkg-config --cflags gthread-2.0)
+GTHREAD_LIBS := $(shell pkg-config --libs gthread-2.0)
+
 SCROBBLE_LIBS := $(SOUP_LIBS)
 
 all:
@@ -20,8 +23,8 @@ libscrobble.a: scrobble.o
 libscrobble.a: CFLAGS := $(CFLAGS) $(GLIB_CFLAGS) $(SOUP_CFLAGS)
 
 test: test.o libscrobble.a
-test: CFLAGS := $(CFLAGS) $(GLIB_CFLAGS)
-test: LIBS := $(LIBS) $(GLIB_LIBS) $(SCROBBLE_LIBS)
+test: CFLAGS := $(CFLAGS) $(GLIB_CFLAGS) $(GTHREAD_CFLAGS)
+test: LIBS := $(LIBS) $(GLIB_LIBS) $(GTHREAD_LIBS) $(SCROBBLE_LIBS)
 binaries += test
 
 all: libscrobble.a $(binaries)
