@@ -392,7 +392,8 @@ sr_session_submit(sr_session_t *s)
 		ADD_FIELD("n", "i", t->position);
 		ADD_FIELD("m", "s", t->mbid);
 
-		++i;
+		if (++i >= 50)
+			break;
 	}
 
 	message = soup_message_new("POST", priv->submit_url);
