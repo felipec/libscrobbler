@@ -49,6 +49,12 @@ static void error_cb(int fatal,
 		g_main_loop_quit(main_loop);
 }
 
+static gboolean timeout(void *data)
+{
+	sr_session_submit(data);
+	return TRUE;
+}
+
 int main(void)
 {
 	sr_session_t *s;
@@ -64,6 +70,7 @@ int main(void)
 	sr_session_test(s);
 	sr_session_store_list(s, "foo");
 	sr_session_handshake(s);
+	g_timeout_add_seconds(30, timeout, s);
 
 	main_loop = g_main_loop_new(NULL, FALSE);
 	g_main_loop_run(main_loop);
