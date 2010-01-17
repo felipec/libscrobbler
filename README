@@ -1,0 +1,9 @@
+libscrobbler is a library to use scrobbling services like last.fm and libre.fm.
+
+Features include:
+ * multi-scrobbling
+ * persistent cache
+ * playback independent (submit song each X minutes)
+
+Some of this code is based on mafw-lastfm:
+https://garage.maemo.org/projects/mafw-lastfm
