@@ -90,6 +90,15 @@ void sr_session_set_cred(sr_session_t *s,
 	priv->hash_pwd = g_compute_checksum_for_string(G_CHECKSUM_MD5, password, -1);
 }
 
+void sr_session_set_cred_hash(sr_session_t *s,
+			      char *user,
+			      char *hash_pwd)
+{
+	struct sr_session_priv *priv = s->priv;
+	priv->user = g_strdup(user);
+	priv->hash_pwd = g_strdup(hash_pwd);
+}
+
 sr_track_t *
 sr_track_new(void)
 {
