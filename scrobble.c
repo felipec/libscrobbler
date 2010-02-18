@@ -228,6 +228,9 @@ sr_session_load_list(sr_session_t *s,
 	if (!f)
 		return 1;
 
+	/* just to avoid warnings */
+	k = 0; p = NULL;
+
 	g_mutex_lock(priv->queue_mutex);
 	t = sr_track_new();
 	while (true) {
